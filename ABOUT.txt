@@ -1,0 +1,12 @@
+São duas biblioteca: uma chamada parse.h e outra chamada shell.h .A primeira é usada pela segunda, e a segunda é usada na main. A primeira contém funções auxiliares de parsear comandos, utilizando exaustivamente expressões regulares e a biblioteca string.h, a segunda contém o core do shell, que são as funções que manipulam comandos internos e externos, etc. 
+
+O que foi implementado até agora: o básico de redirecionamento, que foi pedido.
+Eis os argumentos aceitos por cd: -, /, .., ~, nome_de_diretorio. Sendo que os três últimos argumentos
+podem ser usados quantas vezes quiser com o uso de barra, como: cd ../Desktop/../~. O cd também aceita acessar diretórios com espaço no nome, basta digitar normalmente, como cd Area de Trabalho. Não precisa e não funciona utilizar aspas ou \ para esse propósito. A razão de termos feito assim é que achamos mais simples e realmente não vimos necessidade de fazer da forma q é o shell padrão do linux. O '-' serve para alternar entre o último diretório visitado e o atual, o '~' serve pra ir pra home,  o '..' serve para voltar um diretório, e o '/' serve para voltar ao diretorio raiz.
+
+Foi implementado o exit, etc.
+
+As explicações das funções e todo o código está comentado.
+
+Um extra foi adicionado devido ao nome do Shell ser ShellBacca, sons do Chewbacca são tocados na inicialização e finalização do shell, para isto é usado o programa "aplay", que acompanha as versões mais recentes do Ubuntu em que foi testado o shell,  que toca um arquivo de som. Foi implementado usando as próprias funções de executar comandos do Shell.
+
