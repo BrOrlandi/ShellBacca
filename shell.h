@@ -7,6 +7,7 @@
 #include <sys/wait.h>//para wait
 #include <unistd.h>//para constantes do dup2
 #include <fcntl.h>//para constantes do comando open
+#include <signal.h>
 
 #define MAX_LEN 1025//maior tamanho aceito de input, 1024 + 1 pro '\0'
 
@@ -14,9 +15,14 @@ char internal_command(char* line);//executa comandos internos, se tiver. Retorna
 int input_redirection(char* line);//faz redirecionamento de entrada, se tiver.
 void output_redirection(char* line);//faz redirecionamento de saída, se tiver
 void external_command(char* line);//executa comando externo, se tiver
-void free_Mem(char* cmd_tok[]);//libera memória
+void free_Mem(char* prg_tok[]);//libera memória
 void cd(char* line, int argindex);//comando CD. Esse argindex é simplesmente o começo dos argumentos de CD. Normalmente seria 2(C = 0, D = 1), mas pode ter um monte de espaço antes
-void print_cmd_tok(char* cmd_tok[], int n);//para debug, imprime todos os argumentos
+void print_prg_tok(char* prg_tok[], int n);//para debug, imprime todos os argumentos
+void execute_program(char* program);//executa programa
+void AnalyseCommand(char* command);//analisa comando, e executa o programa se encontrar, e faz os redirecionamentos de entrada e saída, se tiver
+void read_from_pipe(int* fd);//redireciona o descritor de arquivo stdin para apontar pra região de leitura do pipe
+void write_to_pipe(int* fd);//redireciona o descritor de arquivo stout para apontar pra região de escrita do pipe
+void create_pipe(int* fd, pid_t* pid);//passa os descritores de entrada e saída do pipe, respectivamente, para fd[0] e fd[1] e forka o processo
 
 __attribute__((weak)) int setenv(const char *name, const char *value, int overwrite);
 

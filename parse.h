@@ -18,6 +18,8 @@ que vai ser retornada em expression. Por exemplo, se temos a expressão >out.txt
 void get_expression(char* line, int start, int ignore, int size, char** expression);
 /*Mesmo que a função de cima, mas se sabe que o começo da expressão está na posição 0*/
 void get_expression2(char* line, int size, char** expression);
+/*mesmo que a primeira versão da função, mas sem tirar os espaços do começo da expressão encontrada, e nunca ignorar nada. Usado quando a expressão regular pode cuidar disso sozinha sem prejuizo*/
+void get_expression3(char* line, int start, int size, char** expression);
 /*a função abaixo simplesmente conta o total de expressões definidas por pattern em uma linha*/
 int count_expression(char* line, char* pattern);
 /*tira os espaços em branco do começo da string*/

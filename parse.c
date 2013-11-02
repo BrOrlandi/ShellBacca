@@ -53,6 +53,13 @@ void get_expression2(char* line, int size, char** expression)
     trim_leading_whitespace(*expression);//tira os espaços do começo
 }
 
+void get_expression3(char* line, int start, int size, char** expression)
+{
+    *expression = malloc(size + 1);//um espaço a mais pro '\0'
+    strncpy(*expression, line + start, size);
+    expression[0][size] = '\0';//ultima posição recebe '\0'
+}
+
 int count_expression(char* line, char* pattern)
 {
     regex_t regex;//pra compilar e executar expressão regular

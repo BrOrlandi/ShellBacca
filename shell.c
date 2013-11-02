@@ -1,6 +1,20 @@
 #include "parse.h"
 #include "shell.h"
 
+void execute_program(char* program)
+{
+    int n = count_expression(program, " [^ ]") + 1;//conta total de argumentos(é o total de espaços seguidos de não espaços + 1)
+    char* prg_tok[n + 1];//vetor de strings, com o comando mais argumentos(o comando é um dos argumentos). + 1 porque o último é NULL
+    tokenize(program, prg_tok, " ");//armazena argumentos
+    //print_prg_tok(prg_tok, n);
+    if (execvp (prg_tok[0], prg_tok) < 0)//executa exec e verifica se deu erro ao mesmo tempo
+        perror ("Execvp");
+
+    free_Mem(prg_tok);//se exec falhar, libera memória. Isso é necessário, senão temos um memory leak.
+    free(program);//libera comando
+    exit(1);//se exec falhar, sai do processo filho
+}
+
 char internal_command(char* line)
 {
     if (exist_expression(line, "^ *exit *$") == 0)
@@ -92,58 +106,60 @@ void output_redirection(char* line)
 
 void external_command(char* line)
 {
-    int pid = fork(), status;
+    int pid = fork(), status = 0;
 
     if (pid < 0)
         perror ("Fork");
 
     else if (pid > 0)//processo pai
-        wait (&status);//espera pelo filho
+        wait(&status);//espera filho terminar
 
     else//filho
     {
-        char* command = NULL;//para capturar comando externo
-        int start, end;//começo e fim do comando externo
-        char flag = 0;//flag para indicar que encontrou comando externo
+        int startLine = 0, startExpr, end;//startLine é o começo da procura da expressão seguinte, startExpr é o começo da expressão encontrada, e end é o fim da expressão encontrada
+        char* command = NULL;//comando atual
+        char* PreviousCommand = NULL;//comando anterior
 
-        if (expression_delimeters2(line, "^( *[^<>| ]+)+", &end) == 0)//se encontrou comando externo no começo da linha
+        if (expression_delimeters(line + startLine, "[^| ]([^|]*[^| ])?", &startExpr, &end) == 0)//se encontrou um comando
         {
-            get_expression2(line, end, &command);
-            flag = 1;
+            get_expression3(line + startLine, startExpr, end - startExpr, &command);//captura o comando
+            startLine += end;//vai pro próximo ponto de busca
         }
 
-        else if (expression_delimeters(line, "[^<>| ] ( *[^<>| ]+)+", &start, &end) == 0)//se encontrou comando externo em outro lugar
+        while (expression_delimeters(line + startLine, "[^| ]([^|]*[^| ])?", &startExpr, &end) == 0)//enquanto encontrar comandos entre pipes
         {
-            get_expression(line, start, 1, end - start, &command);
-            flag = 1;
+            PreviousCommand = command;//comando anterior recebe comando
+            get_expression3(line + startLine, startExpr, end - startExpr, &command);//pega comando atual
+            startLine += end;//vai pra próximo ponto de procura de comando
+
+            int fd[2];//para armazenar descritores de arquivo da entrada do pipe e saída do pipe, respectivamente
+            pid_t pid;
+
+            create_pipe(fd, &pid);//cria pipe
+
+            if (pid < 0)//se deu pau no fork
+                perror ("Fork");
+
+            if (pid == 0)//se for processo filho
+            {
+                write_to_pipe(fd);//descritor stdout aponta pra região de escrita do pipe
+                AnalyseCommand(PreviousCommand);//executa comando, cuja saída vai pro região de escrita do pipe
+            }
+
+            else
+               read_from_pipe(fd);//descritor stdin aponta pra região de leitura do pipe
         }
 
-        if (flag == 0)//se não encontrou comando externo retorna
-            return;
-
-        if (input_redirection(line) != 0)//faz redirecionamento de entrada, se tiver. Se arquivo não existir, retorna
-            exit(1);
-
-        output_redirection(line);//faz redirecionamento de saída, se tiver.
-
-        int n = count_expression(command, " [^ ]") + 1;//conta total de argumentos(é o total de espaços seguidos de não espaços + 1)
-        char* cmd_tok[n + 1];//vetor de strings, com o comando mais argumentos(o comando é um dos argumentos). + 1 porque o último é NULL
-        tokenize(command, cmd_tok, " ");//armazena argumentos
-        //print_cmd_tok(cmd_tok, n);
-        if (execvp (cmd_tok[0], cmd_tok) < 0)//executa exec e verifica se deu erro ao mesmo tempo
-            perror ("Execvp");
-
-        free_Mem(cmd_tok);//se exec falhar, libera memória. Isso é necessário, senão temos um memory leak.
-        exit(1);//se exec falhar, sai do processo filho
+        AnalyseCommand(command);//analisa último comando
     }
 }
 
-void free_Mem(char* cmd_tok[])
+void free_Mem(char* prg_tok[])
 {
     int i = 0;
-    while(cmd_tok[i] != NULL)
+    while(prg_tok[i] != NULL)
     {
-        free(cmd_tok[i]);
+        free(prg_tok[i]);
         ++i;
     }
 }
@@ -207,7 +223,7 @@ void cd(char* line, int argindex)
         tokenize(args, args_tok, "/");//armazena argumentos
 
         int i = 0;//para caminhar pelos argumentos
-        //print_cmd_tok(args_tok, n);
+        //print_prg_tok(args_tok, n);
 
         char flag = 0;
         char OLDPWD[MAX_LEN];
@@ -292,14 +308,64 @@ void cd(char* line, int argindex)
     }
 }
 
-void print_cmd_tok(char* cmd_tok[], int n)
+void print_prg_tok(char* prg_tok[], int n)
 {
     int i = 0;
 
     printf("total de argumentos: %d\n", n);
-    while(cmd_tok[i] != NULL)
+    while(prg_tok[i] != NULL)
     {
-        printf("arg[%d]: %s len: %d\n", i, cmd_tok[i], (int)strlen(cmd_tok[i]));
+        printf("arg[%d]: %s len: %d\n", i, prg_tok[i], (int)strlen(prg_tok[i]));
         ++i;
     }
+}
+
+void AnalyseCommand(char* command)
+{
+    char* program = NULL;//para capturar programa externo
+    int start, end;//começo e fim do programa externo
+    char flag = 0;//flag para indicar que encontrou programa externo
+
+    if (expression_delimeters2(command, "^( *[^<> ]+)+", &end) == 0)//se encontrou programa externo no começo do comando
+    {
+        get_expression2(command, end, &program);
+        flag = 1;
+    }
+
+    else if (expression_delimeters(command, "[^<> ] ( *[^<> ]+)+", &start, &end) == 0)//se encontrou programa externo em outro lugar
+    {
+        get_expression(command, start, 1, end - start, &program);
+        flag = 1;
+    }
+
+    if (flag == 0)//se não encontrou programa externo retorna
+        exit(1);
+
+    if (input_redirection(command) != 0)//faz redirecionamento de entrada, se tiver. Se arquivo não existir, retorna
+        exit(1);
+
+    output_redirection(command);//faz redirecionamento de saída, se tiver.
+    execute_program(program);//executa programa
+}
+
+void read_from_pipe(int* fd)
+{
+    close(fd[1]);//fecha escrever no pipe
+    dup2(fd[0], STDIN_FILENO);//stdin aponta pra região de leitura do pipe
+    close(fd[0]);//não precisa de dois descritores de arquivo apontando pro mesmo lugar
+}
+
+void write_to_pipe(int* fd)
+{
+    close(fd[0]);//fecha leitura do pipe
+    dup2(fd[1], STDOUT_FILENO);//stdout aponta pra região de escrita do pipe
+    close(fd[1]);//não precisa de dois descritores de arquivo apontando pro mesmo lugar
+}
+
+void create_pipe(int* fd, pid_t* pid)
+{
+    if (pipe(fd) != 0)//passa os descritores do pipe
+        perror("pipe");
+
+    *pid = fork();//tenta dar um fork
 }
