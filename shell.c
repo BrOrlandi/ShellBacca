@@ -4,14 +4,14 @@
 void execute_program(char* program)
 {
     int n = count_expression(program, " [^ ]") + 1;//conta total de argumentos(é o total de espaços seguidos de não espaços + 1)
-    char* prg_tok[n + 1];//vetor de strings, com o comando mais argumentos(o comando é um dos argumentos). + 1 porque o último é NULL
+    char* prg_tok[n + 1];//vetor de strings, com o programa mais argumentos(o programa é um dos argumentos). + 1 porque o último é NULL
     tokenize(program, prg_tok, " ");//armazena argumentos
     //print_prg_tok(prg_tok, n);
     if (execvp (prg_tok[0], prg_tok) < 0)//executa exec e verifica se deu erro ao mesmo tempo
         perror ("Execvp");
 
     free_Mem(prg_tok);//se exec falhar, libera memória. Isso é necessário, senão temos um memory leak.
-    free(program);//libera comando
+    free(program);//libera programa
     exit(1);//se exec falhar, sai do processo filho
 }
 
@@ -126,6 +126,9 @@ void external_command(char* line)
             startLine += end;//vai pro próximo ponto de busca
         }
 
+        else//se não encontrou nenhum comando
+            exit(1);
+
         while (expression_delimeters(line + startLine, "[^| ]([^|]*[^| ])?", &startExpr, &end) == 0)//enquanto encontrar comandos entre pipes
         {
             PreviousCommand = command;//comando anterior recebe comando
@@ -166,7 +169,6 @@ void free_Mem(char* prg_tok[])
 
 void cd(char* line, int argindex)
 {
-    int end;
     char path[MAX_LEN];//para armazenar caminho de diretório atual
     getcwd(path,sizeof(path));//pega diretório atual
 
@@ -212,26 +214,19 @@ void cd(char* line, int argindex)
 
     else//se encontrou argumentos
     {
-        expression_delimeters2(line + argindex, ".*[^ ]", &end);
-        char* args = NULL;//vetor de argumentos. Esses argumentos podem ser ".." ou um diretório, ou "~"
 
-        get_expression2(line + argindex, end, &args);//armazena argumentos
-
-        int n = count_expression(args, "/.") + 1;//conta total de argumentos(é o total de "/" seguido de qualquer coisa + 1)
-
-        char* args_tok[n + 1];//vetor de strings, com os path ou ".." ou "~". + 1 porque o último argumento recebe null
-        tokenize(args, args_tok, "/");//armazena argumentos
-
-        int i = 0;//para caminhar pelos argumentos
-        //print_prg_tok(args_tok, n);
-
-        char flag = 0;
-        char OLDPWD[MAX_LEN];
-        strcpy(OLDPWD, path);
-
-        while (args_tok[i] != NULL)
+        int startExpr, end;//início e fim da expressão encontrada, respectivamente
+        char* command = NULL;//diretório ou '..' ou '~' atual
+        char flag = 0;//para ficar alternando entre diretório atual e anterior
+        char OLDPWD[MAX_LEN];//para armazenar diretório antigo
+        strcpy(OLDPWD, path);//diretório antigo armazena atual inicialmente
+        while (expression_delimeters(line + argindex, "[^/ ]([^/]*[^/ ])?", &startExpr, &end) == 0)//enquanto encontrar diretórios ou '..' ou '~'
         {
-            if (strcmp(args_tok[i], "..") == 0)//volta um diretório
+            get_expression3(line + argindex, startExpr, end - startExpr, &command);//pega comando atual
+            //printf("argindex %d, end %d, command %s, size %d\n", argindex, end, command, strlen(command));
+            argindex += end;//vai pra próximo ponto de procura de comando
+
+            if (strcmp(command, "..") == 0)//volta um diretório
             {
                 char* pch;
 
@@ -260,7 +255,7 @@ void cd(char* line, int argindex)
 
             else//avançar um diretório
             {
-                if (strcmp(args_tok[i], "~") == 0)//ir pro diretório home
+                if (strcmp(command, "~") == 0)//ir pro diretório home
                 {
                     char* HOME = getenv("HOME");
                     strcpy(path, HOME);
@@ -282,9 +277,8 @@ void cd(char* line, int argindex)
 
                 else
                 {
-
                     strcat(path, "/");//concatena barra
-                    strcat(path, args_tok[i]);//concatena argumento
+                    strcat(path, command);//concatena argumento
 
                     if (chdir(path) != 0)//se não conseguir avançar um diretório
                         perror("Nao foi possivel avancar um diretorio");
@@ -301,10 +295,8 @@ void cd(char* line, int argindex)
                 }
             }
 
-            ++i;
+            free(command);
         }
-
-        free_Mem(args_tok);//libera memória
     }
 }
 
@@ -345,6 +337,7 @@ void AnalyseCommand(char* command)
         exit(1);
 
     output_redirection(command);//faz redirecionamento de saída, se tiver.
+    free(command);//libera comando
     execute_program(program);//executa programa
 }
 

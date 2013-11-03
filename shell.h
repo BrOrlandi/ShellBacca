@@ -7,7 +7,6 @@
 #include <sys/wait.h>//para wait
 #include <unistd.h>//para constantes do dup2
 #include <fcntl.h>//para constantes do comando open
-#include <signal.h>
 
 #define MAX_LEN 1025//maior tamanho aceito de input, 1024 + 1 pro '\0'
 

@@ -25,11 +25,7 @@ int main()
             external_command(line);//executa comando externo
 
           else if (int_command == 1)//se foi executado exit
-          {
-              printf("exitou\n");
               loop = 0;
-          }
-
       }
 
     }

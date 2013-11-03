@@ -14,7 +14,8 @@ int expression_delimeters(char* line, char* pattern, int* start, int* end);
 /*Mesmo que a função de cima, mas sem armazenar a posição do começo da expressão encontrada. Usada para casos em que se sabe que o primeiro caracter da expressão é na posição 0*/
 int expression_delimeters2(char* line, char* pattern, int* end);
 /*função feita para armazenar a expressão encontrada em expression_delimeters. ignore é a quantidade de caracteres que devem ser ignorados do começo da expressão encontrada,
-que vai ser retornada em expression. Por exemplo, se temos a expressão >out.txt e queremos pular o '>', basta fazer ignore = 1*/
+que vai ser retornada em expression. Por exemplo, se temos a expressão >out.txt e queremos pular o '>', basta fazer ignore = 1
+IMPORTANTE: sempre dar free em expression depois de usar as funções da famíla get_expression, pois utilizam malloc pra armazenar a expressão*/
 void get_expression(char* line, int start, int ignore, int size, char** expression);
 /*Mesmo que a função de cima, mas se sabe que o começo da expressão está na posição 0*/
 void get_expression2(char* line, int size, char** expression);
