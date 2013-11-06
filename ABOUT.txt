@@ -1,3 +1,5 @@
+###ENTREGA PARCIAL 1###
+
 São duas biblioteca: uma chamada parse.h e outra chamada shell.h .A primeira é usada pela segunda, e a segunda é usada na main. A primeira contém funções auxiliares de parsear comandos, utilizando exaustivamente expressões regulares e a biblioteca string.h, a segunda contém o core do shell, que são as funções que manipulam comandos internos e externos, etc. 
 
 O que foi implementado até agora: o básico de redirecionamento, que foi pedido.
@@ -9,4 +11,10 @@ Foi implementado o exit, etc.
 As explicações das funções e todo o código está comentado.
 
 Um extra foi adicionado devido ao nome do Shell ser ShellBacca, sons do Chewbacca são tocados na inicialização e finalização do shell, para isto é usado o programa "aplay", que acompanha as versões mais recentes do Ubuntu em que foi testado o shell,  que toca um arquivo de som. Foi implementado usando as próprias funções de executar comandos do Shell.
+
+
+###ENTREGA PARCIAL 2###
+Foi removido o som do Chewbacca por estar impedindo que outros comandos sejam digitados enquanto o som toca e por tocar somente na pasta do Shell.
+
+Nós limpamos o código do comando CD e o otimizamos. Agora, você pode digitar algo como "< in.txt > out.txt cat"(onde você coloca o programa na linha não importa) que funciona(como no shell do linux). Foi implementado pipes, que funcionam em conjunto com os redirecionamentos implementados anteriormente. Exemplo: "cat < in.txt | grep f| sort -r > out.txt". Se você fizer algo sem sentido como "cat < in.txt > out.txt| grep f" você vai ter o comportamento do shell do linux(vai jogar o resultado em out.txt e ignorar o que vem depois do pipe).  
 

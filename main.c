@@ -1,4 +1,5 @@
 #include "shell.h"
+#include "linha_comando.h"
 
 int main()
 {
@@ -6,10 +7,14 @@ int main()
     char line[MAX_LEN], cwd[MAX_LEN];
     char int_command;
 
+    Historico *historico = CriarHistorico();
+    
     while(loop)
     {
       printf("%s$: ", getcwd(cwd, sizeof(cwd)));
-      gets(line);
+      
+      //gets(line);
+      LinhaDeComando(line, historico);
 
       if (strlen(line) > MAX_LEN - 1)
       {
