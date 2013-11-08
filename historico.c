@@ -5,10 +5,14 @@ Historico *CriarHistorico(void)
     Historico *h;
     h = (Historico *) malloc(sizeof(Historico));
     h->ini = h->fim = NULL;
+    return h;
 }
 
 void InserirHistorico(Historico *h, char *novo)
 {
+    if(!IsEmptyHistorico(h) && !strcmp(h->fim->ant->info,novo)){ // não insere se for igual ao ultimo comando digitado no historico
+        return;
+    }
     noh *n;
     n = (noh *) malloc(sizeof(noh));
     if(n==NULL)

@@ -1,12 +1,21 @@
 //Lista duplamente encadeada de strings de linha de comando
 
+#ifndef STDLIB_H
+#define STDLIB_H
 #include <stdlib.h>
-#include <string.h>
+#endif
 
-#define LINHA 1024
+#ifndef STRING_H
+#define STRING_H
+#include <string.h>
+#endif
+
+#ifndef MAX_LEN 
+#define MAX_LEN 1024 //maior tamanho aceito de input
+#endif
 
 typedef struct bloco{
-    char info[LINHA];
+    char info[MAX_LEN];
     struct bloco *ant,*prox;
 }noh;
 

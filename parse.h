@@ -1,9 +1,17 @@
 #ifndef PARSE_H_INCLUDED
 #define PARSE_H_INCLUDED
 
-#include <stdlib.h>//para free
+#ifndef STDLIB_H
+#define STDLIB_H
+#include <stdlib.h>
+#endif
+
 #include <regex.h>
+
+#ifndef STRING_H
+#define STRING_H
 #include <string.h>
+#endif
 
 /*O end é a última posição do último caracter da expressão encontrada + 1. Ou seja, o tamanho da string inteira em que se fez a busca(até encontrar o último caracter), não o tamanho da expressão encontrada
 Por exemplo, supondo a string "abcdefgh" e se comece a procurar a partir de b(entao a posicão de b é a 0) pra encontrar "ef", end seria 5*/

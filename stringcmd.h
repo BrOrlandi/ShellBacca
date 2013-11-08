@@ -1,11 +1,24 @@
+#ifndef STDLIB_H
+#define STDLIB_H
 #include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#endif
 
-#define LINHA 1024
+#ifndef STDIO_H
+#define STDIO_H
+#include <stdio.h>
+#endif
+
+#ifndef STRING_H
+#define STRING_H
+#include <string.h>
+#endif
+
+#ifndef MAX_LEN 
+#define MAX_LEN 1024 //maior tamanho aceito de input
+#endif
 
 typedef struct{
-    char str[LINHA];
+    char str[MAX_LEN];
     int size;
 }String;
 

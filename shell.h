@@ -2,13 +2,28 @@
 #define SHELL_H_INCLUDED
 
 #include "parse.h"
-#include <stdio.h>//para perror
+
+#ifndef STDIO_H
+#define STDIO_H
+#include <stdio.h> // para perror
+#endif
+
 #include <sys/types.h>//para wait
 #include <sys/wait.h>//para wait
-#include <unistd.h>//para constantes do dup2
-#include <fcntl.h>//para constantes do comando open
 
-#define MAX_LEN 1025//maior tamanho aceito de input, 1024 + 1 pro '\0'
+#ifndef UNISTD_H
+#define UNISTD_H
+#include <unistd.h> //para constantes do dup2
+#endif
+
+#ifndef FCNTL_H
+#define FCNTL_H
+#include <fcntl.h>//para constantes do comando open
+#endif
+
+#ifndef MAX_LEN 
+#define MAX_LEN 1024 //maior tamanho aceito de input
+#endif
 
 char internal_command(char* line);//executa comandos internos, se tiver. Retorna 1 se for digitado exit, 2 se for CD, 0 se não for nenhum comando interno
 int input_redirection(char* line);//faz redirecionamento de entrada, se tiver.

@@ -1,10 +1,20 @@
 #include "historico.h"
 #include "LinuxUtils.h"
 #include "stringcmd.h"
-#include <stdio.h>
-#include <stdlib.h>
 
-#define LINHA 1024
+#ifndef STDIO_H
+#define STDIO_H
+#include <stdio.h>
+#endif
+
+#ifndef STDLIB_H
+#define STDLIB_H
+#include <stdlib.h>
+#endif
+
+#ifndef MAX_LEN 
+#define MAX_LEN 1024 //maior tamanho aceito de input
+#endif
 
 #define ARROW_UP 11
 #define ARROW_DOWN 12
