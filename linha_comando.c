@@ -24,7 +24,7 @@ void LinhaDeComando(char *linha, Historico *historico)
         else if(key == ARROW_UP)
         {
             //printf("ARROW_UP");
-            char hist[LINHA];
+            char hist[MAX_LEN];
             if(MoverParaCima(&hPointer,hist))
             {
                 BackSpace(StringLength(linhaString));
@@ -35,7 +35,7 @@ void LinhaDeComando(char *linha, Historico *historico)
         else if(key == ARROW_DOWN)
         {
             //printf("ARROW_DOWN");
-            char hist[LINHA];
+            char hist[MAX_LEN];
             if(MoverParaBaixo(&hPointer,hist))
             {
                 BackSpace(StringLength(linhaString));

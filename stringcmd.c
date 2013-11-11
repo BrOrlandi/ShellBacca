@@ -17,7 +17,7 @@ int putString(String *s,char x)
     }
     else
     {
-        if(s->size < LINHA-1)
+        if(s->size < MAX_LEN-1)
         {
             s->str[s->size++] = x;
             s->str[s->size] = '\0';
