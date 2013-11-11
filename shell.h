@@ -21,7 +21,7 @@
 #include <fcntl.h>//para constantes do comando open
 #endif
 
-#ifndef MAX_LEN 
+#ifndef MAX_LEN
 #define MAX_LEN 1024 //maior tamanho aceito de input
 #endif
 

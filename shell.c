@@ -74,21 +74,33 @@ void output_redirection(char* line)
     if (expression_delimeters(line, "> *[^<>| ]+", &start, &end) == 0)//se encontrou redirecionamento de saída
     {
         char* output = NULL;
-        char flag = 1;//=1 é concatenação, =0 é sobrescrita
+        char flag = 0;//=0 é sobrescrita, =1 é concatenação, =2 é sobrescrita e redirecionamento de erro
         int fd;//descritor de arquivo
 
-        if ( (start != 0 && line[start - 1] != '>') || start == 0)//se não tinha outro '>' atrás, então é sobrescrita
-            flag = 0;
+        if (start != 0)
+        {
+            if (line[start - 1] == '>')
+                flag = 1;
+
+            else if (line[start - 1] == '&')
+                flag = 2;
+
+        }
 
         get_expression(line, start, 1, end - start, &output);//a expressão regular é dessa forma justamente para pegar apenas um output redirection, não mais.
 
         if (flag == 1)//se foi encontrado concatenacao
             fd = open(output, O_WRONLY|O_APPEND|O_CREAT, 0644);
 
-        else//foi encontrado sobrescrita
+        else//foi encontrado sobrescrita ou sobrescrita e redirecionamento de erro
         {
             remove(output);//remove arquivo, se existir. Senão dá "erro", mas não me interessa.
             fd = open(output, O_WRONLY|O_CREAT, 0644);//abre arquivo
+            if (flag == 2)//se for sobrescrita e redirecionamento de erro
+            {
+                if (dup2(fd, STDERR_FILENO) < 0)//duplica descritor de arquivo, para STDERR_FILENO apontar para o arquivo aberto
+                    perror("Failed to duplicate File Descriptor");
+            }
         }
 
         if (fd < 0)
@@ -318,7 +330,7 @@ void AnalyseCommand(char* command)
     int start, end;//começo e fim do programa externo
     char flag = 0;//flag para indicar que encontrou programa externo
 
-    if (expression_delimeters2(command, "^( *[^<> ]+)+", &end) == 0)//se encontrou programa externo no começo do comando
+    if (expression_delimeters2(command, "^( *[^&<> ]+)+", &end) == 0)//se encontrou programa externo no começo do comando
     {
         get_expression2(command, end, &program);
         flag = 1;

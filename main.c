@@ -8,12 +8,11 @@ int main()
     char int_command;
 
     Historico *historico = CriarHistorico();
-    
+
     while(loop)
     {
       printf("%s$: ", getcwd(cwd, sizeof(cwd)));
-      
-      //gets(line);
+
       LinhaDeComando(line, historico);
 
       if (strlen(line) > MAX_LEN - 1)
