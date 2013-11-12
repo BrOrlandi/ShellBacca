@@ -3,7 +3,10 @@
 #include <stdio.h>
 #endif
 
+#ifndef TERMIOS_H
+#define TERMIOS_H
 #include <termios.h> // bibliotecas para usar o getch() em linux
+#endif
 
 #ifndef UNISTD_H
 #define UNISTD_H

@@ -2,14 +2,22 @@
 #define SHELL_H_INCLUDED
 
 #include "parse.h"
+#include "signal_handler.h"
 
 #ifndef STDIO_H
 #define STDIO_H
 #include <stdio.h> // para perror
 #endif
 
+#ifndef SYSTYPES_H
+#define SYSTYPES_H
 #include <sys/types.h>//para wait
+#endif
+
+#ifndef SYSWAIT_H
+#define SYSWAIT_H
 #include <sys/wait.h>//para wait
+#endif
 
 #ifndef UNISTD_H
 #define UNISTD_H

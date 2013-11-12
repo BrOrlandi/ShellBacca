@@ -6,7 +6,10 @@
 #include <stdlib.h>
 #endif
 
+#ifndef REGEX_H
+#define REGEX_H
 #include <regex.h>
+#endif
 
 #ifndef STRING_H
 #define STRING_H

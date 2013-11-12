@@ -126,8 +126,14 @@ void external_command(char* line)
     else if (pid > 0)//processo pai
         wait(&status);//espera filho terminar
 
+
     else//filho
     {
+        /*as três linhas abaixo fazem o processo filho ser destruído ao receber o sinal de interromper terminal*/
+        struct sigaction mysigact;
+        mysigact.sa_handler = &sahandler;
+        sigaction(SIGINT, &mysigact, NULL);
+
         int startLine = 0, startExpr, end;//startLine é o começo da procura da expressão seguinte, startExpr é o começo da expressão encontrada, e end é o fim da expressão encontrada
         char* command = NULL;//comando atual
         char* PreviousCommand = NULL;//comando anterior
