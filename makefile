@@ -19,7 +19,7 @@ LD_FLAGS  = #			#Linker flags
 #
 
 binary = ShellBacca			   #The executable program to be build
-objects = main.o parse.o shell.o historico.o LinuxUtils.o linha_comando.o stringcmd.o  #List of objects that will be linked
+objects = main.o parse.o shell.o historico.o LinuxUtils.o signal_handler.o linha_comando.o stringcmd.o  #List of objects that will be linked
 
 garbage = \#* *~		   # Garbage to clean up, e.g. temp files
 
