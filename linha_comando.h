@@ -1,3 +1,6 @@
+#ifndef LINHA_COMANDO_H_INCLUDED
+#define LINHA_COMANDO_H_INCLUDED
+
 #include "historico.h"
 #include "LinuxUtils.h"
 #include "stringcmd.h"
@@ -12,7 +15,7 @@
 #include <stdlib.h>
 #endif
 
-#ifndef MAX_LEN 
+#ifndef MAX_LEN
 #define MAX_LEN 1024 //maior tamanho aceito de input
 #endif
 
@@ -25,4 +28,4 @@
 void LinhaDeComando(char *linha, Historico *historico);
 int isValidChar(char x);
 void BackSpace(int n);
-
+#endif// LINHA_COMANDO_H_INCLUDED

@@ -1,4 +1,3 @@
-#include "parse.h"
 #include "shell.h"
 
 void execute_program(char* program)
@@ -118,22 +117,20 @@ void output_redirection(char* line)
 
 void external_command(char* line)
 {
-    int pid = fork(), status = 0;
+    signal_handler_pid = fork();
+    int status = 0;
 
-    if (pid < 0)
+    if (signal_handler_pid < 0)
         perror ("Fork");
 
-    else if (pid > 0)//processo pai
-        wait(&status);//espera filho terminar
-
+    else if (signal_handler_pid > 0)//processo pai
+    {
+        SendSignalsToChild();//captura sinais e envia pro filho
+        waitpid(signal_handler_pid, &status, 0);//espera filho terminar. Somente wait() por algum motivo não funciona quando aperta ctrl+c
+    }
 
     else//filho
     {
-        /*as três linhas abaixo fazem o processo filho ser destruído ao receber o sinal de interromper terminal*/
-        struct sigaction mysigact;
-        mysigact.sa_handler = &sahandler;
-        sigaction(SIGINT, &mysigact, NULL);
-
         int startLine = 0, startExpr, end;//startLine é o começo da procura da expressão seguinte, startExpr é o começo da expressão encontrada, e end é o fim da expressão encontrada
         char* command = NULL;//comando atual
         char* PreviousCommand = NULL;//comando anterior
@@ -172,6 +169,7 @@ void external_command(char* line)
         }
 
         AnalyseCommand(command);//analisa último comando
+
     }
 }
 

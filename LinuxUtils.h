@@ -1,3 +1,6 @@
+#ifndef LINUXUTILS_H_INCLUDED
+#define LINUXUTILS_H_INCLUDED
+
 #ifndef STDIO_H
 #define STDIO_H
 #include <stdio.h>
@@ -20,5 +23,4 @@
 
 int GetChar(void);
 int ApertouTecla(void);
-
-
+#endif//LINUXUTILS_H_INCLUDED

@@ -4,13 +4,10 @@
 int main()
 {
     /*as três linhas abaixo fazem o processo pai(e filho consequentemente) ignorar o sinal de interromper terminal. O filho trata o sinal depois*/
-    struct sigaction mysigact;
-    mysigact.sa_handler = SIG_IGN;
-    sigaction(SIGINT, &mysigact, NULL);
-
     int loop = 1;
     char line[MAX_LEN], cwd[MAX_LEN];
     char int_command;
+    IgnoreSignals();//por padrão ignora sinais recebidos, se forkar aí o comportamento muda.
 
     Historico *historico = CriarHistorico();
 
