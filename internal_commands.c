@@ -20,6 +20,12 @@ char internal_command(char* line)
             jobs(line + end);//executa comando jobs
             return 3;//retorna 3
         }
+
+        else if (expression_delimeters2(line, "^ *bg($| )", &end) == 0)
+        {
+            bg(line + end);//executa comando bg
+            return 4;//retorna 4
+        }
     }
 
     return 0;//se não foi e nenhum comando interno, retorna 0
@@ -160,6 +166,12 @@ void cd(char* line, int argindex)
 
 void jobs(char* line)
 {
+    if (ps.fim == NULL)//se não tiver processo, retorna
+    {
+        fprintf(stderr, "sem jobs para mostrar\n");
+        return;
+    }
+
     no *n = ps.inicio;
     if (exist_expression(line, "^ *$") == 0)//é o comando jobs sem argumentos
     {
@@ -200,11 +212,58 @@ void jobs(char* line)
         fprintf(stderr, "opcao invalida, apenas -l e -p sao aceitos\n");
 }
 
+void bg(char* line)
+{
+    int end;//para armazenar fim do número
+
+    if (ps.fim == NULL)//se não tiver processo, retorna
+    {
+        fprintf(stderr, "sem jobs para mostrar\n");
+        return;
+    }
+
+
+    if (exist_expression(line, "^ *$") == 0)//é o comando bg sem argumentos
+    {
+        if (ps.atual->processo.status == BACKGROUND)
+            fprintf(stderr, "processo atual ja esta em background\n");
+        else
+        {
+            ps.atual->processo.status = BACKGROUND;//muda estado do processo para background
+            kill (ps.atual->processo.pid, SIGCONT);//Estava suspenso, continua processo em background
+            printf("processo atual colocado em background\n");
+        }
+    }
+
+    else if (expression_delimeters2(line, "^ *[0-9]+", &end) == 0)//é o comando bg com o id do processo como argumento
+    {
+        int id;//id do processo(versão inteira, vai armazenar com atoi)
+        char* jid = NULL;//id do processo(versão string, porque vou extrair do comando)
+        char retorno;//armazena retorno da função
+        get_expression2(line, end, &jid);//pega o número de id do processo
+        id = atoi(jid);//armazena id do processo
+        retorno = alterarEstadoProcesso(id, BACKGROUND);//altera estado do processo com id para BACKGROUND, processo com id também vira processo atual
+
+        if (retorno == -1)
+            fprintf(stderr, "Nao tem job com esse id\n");
+        else if (retorno == -2)
+            fprintf(stderr, "job %d ja esta em background\n", id);
+        else
+        {
+            kill (ps.atual->processo.pid, SIGCONT);//Estava suspenso, continua processo em background
+            printf("job %d colocado em background\n", id);
+        }
+    }
+
+    else
+        fprintf(stderr, "digite 'bg' ou 'bg n', onde n é um natural maior que 0\n");
+}
+
 void printaEstado(char status)
 {
     switch(status)//imprime estado do processo
     {
-        case 1:printf("BACKGROUND");break;
+        case 1:printf("RUNNING");break;
         case 2:printf("STOPPED");break;
     }
 }

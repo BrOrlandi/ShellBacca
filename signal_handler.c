@@ -4,7 +4,10 @@ pid_t signal_handler_pid;
 void sahandler(int signo)
 {
     if (signo == SIGCHLD)//caso o filho seja destruído(pois setei a flag SA_NOCLDSTOP para ignorar quando o filho é suspenso ou continua)
+    {
+        while (waitpid((pid_t)(-1), 0, WNOHANG) > 0) {}//remove processos zumbis
         removerProcesso();//remove processo atual
+    }
 
     else if (signo == SIGHUP)//se detectou sinal de fechar terminal
         kill (0, SIGKILL);//destrói processo pai e filho. Eu precisei fazer isso porque por algum motivo se eu suspender o processo filho, ele não é destruído junto com o pai normalmente

@@ -18,6 +18,11 @@
 #include <signal.h>
 #endif
 
+#ifndef SYSWAIT_H
+#define SYSWAIT_H
+#include <sys/wait.h>//para wait
+#endif
+
 extern pid_t signal_handler_pid;//pid do processo filho
 
 void sahandler(int);//função que vai cuidar dos sinais recebidos

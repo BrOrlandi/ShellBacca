@@ -79,8 +79,17 @@ char alterarEstadoProcesso(int id, char status)
     while (ps.atual != NULL && ps.atual->processo.id > id)
         ps.atual = ps.atual->ant;
 
-    if (atual == NULL)
+    if (ps.atual == NULL)
+    {
+        ps.atual = atual;//volta processo atual pro original
         return -1;
+    }
+
+    else if (ps.atual->processo.status == status)//se processo atual já estiver com estado do parâmetro
+    {
+        ps.atual = atual;//volta processo atual pro original
+        return -2;
+    }
 
     ps.atual->processo.status = status;//processo atual recebe novo estado
     return 0;
