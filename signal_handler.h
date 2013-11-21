@@ -1,6 +1,8 @@
 #ifndef SIGNAL_HANDLER_H_INCLUDED
 #define SIGNAL_HANDLER_H_INCLUDED
 
+#include "processes_handler.h"
+
 #ifndef SYSTYPES_H
 #define SYSTYPES_H
 #include <sys/types.h>
@@ -17,7 +19,6 @@
 #endif
 
 extern pid_t signal_handler_pid;//pid do processo filho
-extern int signal_handler_stopped;//número de processos suspensos, inicialmente é 0
 
 void sahandler(int);//função que vai cuidar dos sinais recebidos
 void SendSignalsToChild();

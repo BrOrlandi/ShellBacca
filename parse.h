@@ -20,7 +20,7 @@
 Por exemplo, supondo a string "abcdefgh" e se comece a procurar a partir de b(entao a posicão de b é a 0) pra encontrar "ef", end seria 5*/
 /*start é o ponteiro pro começo da expressão encontrada*/
 
-/*função feita para extrair a primeira expressão encontrada dada por pattern em uma linha.*/
+/*função feita para extrair a primeira expressão encontrada dada por pattern em uma linha. Retorna 0 se encontrar expressão, != de 0 caso contrário*/
 int expression_delimeters(char* line, char* pattern, int* start, int* end);
 /*Mesmo que a função de cima, mas sem armazenar a posição do começo da expressão encontrada. Usada para casos em que se sabe que o primeiro caracter da expressão é na posição 0*/
 int expression_delimeters2(char* line, char* pattern, int* end);
@@ -32,13 +32,12 @@ void get_expression(char* line, int start, int ignore, int size, char** expressi
 void get_expression2(char* line, int size, char** expression);
 /*mesmo que a primeira versão da função, mas sem tirar os espaços do começo da expressão encontrada, e nunca ignorar nada. Usado quando a expressão regular pode cuidar disso sozinha sem prejuizo*/
 void get_expression3(char* line, int start, int size, char** expression);
-/*a função abaixo simplesmente conta o total de expressões definidas por pattern em uma linha*/
+/*a função abaixo simplesmente retorna o total de expressões definidas por pattern em uma linha*/
 int count_expression(char* line, char* pattern);
 /*tira os espaços em branco do começo da string*/
 void trim_leading_whitespace(char* string);
 /*quebra os argumentos de um comando cmd e armazena em cmd_tok, token é a string q vai ser usada pra quebrar o comando*/
 void tokenize(char* cmd, char* cmd_tok[], char* token);
-/*Verifica se a expressão dada por pattern existe em line*/
+/*Verifica se a expressão dada por pattern existe em line. Retorna 0 se encontrar, != de 0 caso contrário*/
 int exist_expression(char* line, char* pattern);
-
 #endif // PARSE_H_INCLUDED

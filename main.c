@@ -1,4 +1,5 @@
 #include "shell.h"
+#include "internal_commands.h"
 #include "linha_comando.h"
 
 int main()
@@ -7,13 +8,14 @@ int main()
     int loop = 1;
     char line[MAX_LEN], cwd[MAX_LEN];
     char int_command;
-    IgnoreSignals();//por padrão ignora sinais recebidos, se forkar aí o comportamento muda.
 
     Historico *historico = CriarHistorico();
+    inicializarListaProcessos();//inicializa lista de processos
 
     while(loop)
     {
       printf("%s$: ", getcwd(cwd, sizeof(cwd)));
+      IgnoreSignals();//por padrão ignora sinais recebidos, se forkar aí o comportamento muda.
 
       LinhaDeComando(line, historico);
 
@@ -28,7 +30,7 @@ int main()
           int_command = internal_command(line);
 
           if (int_command == 0)//se foi executado comando externo
-            external_command(line);//executa comando externo
+              external_command(line);//executa comando externo
 
           else if (int_command == 1)//se foi executado exit
               loop = 0;
