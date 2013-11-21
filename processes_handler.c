@@ -100,7 +100,53 @@ void alterarEstadoUltimoProcesso(char status)
     ps.atual->processo.status = status;
 }
 
-void removerProcesso()
+void removerProcesso(pid_t pid)
+{
+    no* n = ps.atual;//recebe processo atual
+
+    while (n->processo.pid < pid)
+        n = n->prox;
+
+    while (n->processo.pid > pid)
+        n = n->ant;
+
+    if (n->ant == NULL && n->prox == NULL)//só tinha um processo
+        ps.atual = ps.inicio = ps.fim = NULL;
+
+    else if (n->ant == NULL)//remover primeiro processo, mas não é único
+    {
+
+        n->prox->ant = NULL;
+        ps.inicio = n->prox;
+
+        if (n == ps.atual)//se n for o processo atual
+            ps.atual = n->prox;
+    }
+
+
+    else if (n->prox == NULL)//remover último processo, mas não é único
+    {
+        n->ant->prox = NULL;
+        ps.fim = n->ant;
+
+        if (n == ps.atual)//se n for o processo atual
+            ps.atual = n->ant;
+    }
+
+    else//remove algum processo que não é primeiro nem último
+    {
+        n->ant->prox = n->prox;
+        n->prox->ant = n->ant;
+
+        if (n == ps.atual)//se n for o processo atual
+            ps.atual = n->prox;
+    }
+
+    free(n);
+
+}
+
+void removerProcessoAtual()
 {
     no* atual = ps.atual;
 
@@ -128,5 +174,4 @@ void removerProcesso()
     }
 
     free(atual);
-
 }

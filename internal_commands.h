@@ -3,6 +3,7 @@
 
 #include "parse.h"
 #include "processes_handler.h"
+#include "signal_handler.h"
 
 #ifndef STDLIB_H
 #define STDLIB_H
@@ -24,6 +25,11 @@
 #include <sys/types.h>
 #endif
 
+#ifndef SYSWAIT_H
+#define SYSWAIT_H
+#include <sys/wait.h>//para wait
+#endif
+
 #ifndef SIGNAL_H
 #define SIGNAL_H
 #include <signal.h>
@@ -37,6 +43,7 @@ char internal_command(char* line);//executa comandos internos, se tiver. Retorna
 void cd(char* line, int argindex);//comando CD. Esse argindex é simplesmente o começo dos argumentos de CD. Normalmente seria 2(C = 0, D = 1), mas pode ter um monte de espaço antes
 void jobs(char* line);//comando jobs. O processo atual é o último inserido, a não ser que o comando fg mude isso. Mostra processos suspensos e rodando em background.
 void bg(char* line);//comando bg.
+void fg(char* line);//comando fg
 
 void printaEstado(char status);//função auxiliar de jobs, recebe status e imprime uma string correspondente na saida padrao
 void printaID_STATUS_PATH(int id, char* stringID, char status, char* path);//função auxiliar de jobs, recebe os argumentos para imprimir id, status e path

@@ -114,21 +114,20 @@ char foregroundORbackground(char* line)
 void external_command(char* line)
 {
     char back_fore = foregroundORbackground(line);//armazena 0 se for foreground, 1 se for background
-    signal_handler_pid = fork();
-
+    pid_t pid = fork();
     int status = 0;
 
-    if (signal_handler_pid < 0)
+    if (pid < 0)
         perror ("Fork");
 
-    else if (signal_handler_pid > 0)//processo pai
+    else if (pid > 0)//processo pai
     {
-        inserirProcesso(signal_handler_pid, back_fore, line);//insere processo na lista de processos
+        inserirProcesso(pid, back_fore, line);//insere processo na lista de processos
 
         if (ps.atual->processo.status == FOREGROUND)//se for pra rodar em foreground
         {
             SendSignalsToChild();//captura sinais e envia pro filho
-            waitpid(signal_handler_pid, &status, WUNTRACED);//espera filho terminar. Somente wait() por algum motivo não funciona quando aperta ctrl+c
+            waitpid(pid, &status, WUNTRACED);//espera filho terminar. Somente wait() por algum motivo não funciona quando aperta ctrl+c
         }
 
     }

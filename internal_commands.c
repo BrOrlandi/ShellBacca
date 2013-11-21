@@ -26,6 +26,12 @@ char internal_command(char* line)
             bg(line + end);//executa comando bg
             return 4;//retorna 4
         }
+
+        else if (expression_delimeters2(line, "^ *fg($| )", &end) == 0)
+        {
+            fg(line + end);//execute comando fg
+            return 5;
+        }
     }
 
     return 0;//se não foi e nenhum comando interno, retorna 0
@@ -242,6 +248,7 @@ void bg(char* line)
         char retorno;//armazena retorno da função
         get_expression2(line, end, &jid);//pega o número de id do processo
         id = atoi(jid);//armazena id do processo
+        free(jid);//libera memória
         retorno = alterarEstadoProcesso(id, BACKGROUND);//altera estado do processo com id para BACKGROUND, processo com id também vira processo atual
 
         if (retorno == -1)
@@ -257,6 +264,51 @@ void bg(char* line)
 
     else
         fprintf(stderr, "digite 'bg' ou 'bg n', onde n é um natural maior que 0\n");
+}
+
+void fg(char* line)
+{
+    int end, status = 0;//para armazenar fim do número, status para wait
+
+    if (ps.fim == NULL)//se não tiver processo, retorna
+    {
+        fprintf(stderr, "sem jobs para mostrar\n");
+        return;
+    }
+
+    if (exist_expression(line, "^ *$") == 0)//é o comando fg sem argumentos
+    {
+        ps.atual->processo.status = FOREGROUND;//muda estado do processo para foreground
+        kill (ps.atual->processo.pid, SIGCONT);//Estava suspenso, continua processo em foreground
+        printf("processo atual colocado em foreground\n");
+        SendSignalsToChild();//captura sinais e envia pro processo em foreground
+        waitpid(ps.atual->processo.pid, &status, WUNTRACED);//espera comando em foreground terminar. Somente wait() por algum motivo não funciona quando aperta ctrl+c
+    }
+
+    else if (expression_delimeters2(line, "^ *[0-9]+", &end) == 0)//é o comando fg com o id do processo como argumento
+    {
+        int id;//id do processo(versão inteira, vai armazenar com atoi)
+        char* jid = NULL;//id do processo(versão string, porque vou extrair do comando)
+        char retorno;//armazena retorno da função
+        get_expression2(line, end, &jid);//pega o número de id do processo
+        id = atoi(jid);//armazena id do processo
+        free(jid);//libera memória
+        retorno = alterarEstadoProcesso(id, FOREGROUND);//altera estado do processo com id para FOREGROUND, processo com id também vira processo atual
+
+        if (retorno == -1)
+            fprintf(stderr, "Nao tem job com esse id\n");
+
+        else
+        {
+            kill (ps.atual->processo.pid, SIGCONT);//Estava suspenso, continua processo em foreground
+            printf("job %d colocado em foreground\n", id);
+            SendSignalsToChild();//captura sinais e envia pro processo em foreground
+            waitpid(ps.atual->processo.pid, &status, WUNTRACED);//espera comando em foreground terminar. Somente wait() por algum motivo não funciona quando aperta ctrl+c
+        }
+    }
+
+    else
+        fprintf(stderr, "digite 'fg' ou 'fg n', onde n é um natural maior que 0\n");
 }
 
 void printaEstado(char status)

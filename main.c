@@ -14,8 +14,8 @@ int main()
 
     while(loop)
     {
-      printf("%s$: ", getcwd(cwd, sizeof(cwd)));
       IgnoreSignals();//por padrão ignora sinais recebidos, se forkar aí o comportamento muda.
+      printf("%s$: ", getcwd(cwd, sizeof(cwd)));
 
       LinhaDeComando(line, historico);
 
