@@ -55,7 +55,7 @@ void destruirListaProcessos();//destrói lista de processos
 void inserirProcesso (int pid, int status, char path[]);//insere processo em lista de processos
 char alterarEstadoProcesso(int id, char status);//altera estado do processo com id para status. Processo com id também passa a ser o atual. Retorna -1 se processo com id especificado não for encontrado, -2 se processo encontrado já tiver estado do parâmetro, 0 se encontrou processo e atribuiu estado
 void alterarEstadoUltimoProcesso(char status);//altera estado do último processo
-void imprimirProcessos();//imprime lista de processos
+void imprimirProcessos();//imprime lista de processos, para debug somente
 void removerProcesso(pid_t pid);//remove processo atual
 void removerProcessoAtual();//remove o processo atual.
 

@@ -7,7 +7,7 @@ void sahandler(int signo)
     {
         pid_t pid;
         char entrou = 0;
-        while ((pid = waitpid((pid_t)(-1), 0, WNOHANG)) > 0)//remove processos zumbis. Processos que iniciam em background sempre viram zumbis porque não tem wait para esperá-los. Contudo, mesmo processos que rodam em foreground e estão sendo "esperados", às vezes viram zumbis(pelos meus testes). Então este while cuida disso
+        while ((pid = waitpid((pid_t)(-1), 0, WNOHANG)) > 0)//remove processos zumbis. Processos que fecham em background(clicando no 'x' no canto superior direito do programa) sempre viram zumbis porque não tem wait para esperá-los. Contudo, mesmo processos que rodam em foreground e estão sendo "esperados", às vezes viram zumbis(pelos meus testes). Então este while cuida disso
         {
             entrou = 1;
             removerProcesso(pid);//remove processo que acabou de ser destruído, da lista de processos

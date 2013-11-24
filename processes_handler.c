@@ -27,7 +27,6 @@ void imprimirProcessos ()
         printf ("pid: %d, status ", n->processo.pid);
         switch(n->processo.status)
         {
-            case 0:printf("FOREGROUND");break;
             case 1:printf("BACKGROUND");break;
             case 2:printf("STOPPED");break;
         }
