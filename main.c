@@ -12,6 +12,7 @@ int main()
     Historico *historico = CriarHistorico();
     inicializarListaProcessos();//inicializa lista de processos
 
+    chewbacca();
     while(loop)
     {
       IgnoreSignals();//por padrão ignora sinais recebidos, se forkar aí o comportamento muda.
