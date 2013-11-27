@@ -248,3 +248,8 @@ void create_pipe(int* fd, pid_t* pid)
 
     *pid = fork();//tenta dar um fork
 }
+
+void chewbacca(void){
+    external_command("aplay ./sound1.wav");
+    return; 
+}
