@@ -1,5 +1,6 @@
 #include "processes_handler.h"
 Processos ps;
+
 void inicializarListaProcessos ()
 {
     ps.fim = ps.inicio = ps.atual = NULL;
@@ -11,6 +12,7 @@ void destruirListaProcessos ()
     n = ps.fim;
     while (n != NULL)
     {
+        kill (n->processo.pid, SIGKILL);//mata processo
         ps.fim = ps.fim->ant;
         free (n);
         n = ps.fim;

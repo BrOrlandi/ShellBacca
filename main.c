@@ -4,7 +4,8 @@
 
 int main()
 {
-    /*as três linhas abaixo fazem o processo pai(e filho consequentemente) ignorar o sinal de interromper terminal. O filho trata o sinal depois*/
+    SIGCHLD_SIGHUP();//seta handler pra esses dois sinais
+
     int loop = 1;
     char line[MAX_LEN], cwd[MAX_LEN];
     char int_command;
@@ -12,10 +13,9 @@ int main()
     Historico *historico = CriarHistorico();
     inicializarListaProcessos();//inicializa lista de processos
 
-    chewbacca();
     while(loop)
     {
-      IgnoreSignals();//por padrão ignora sinais recebidos, se forkar aí o comportamento muda.
+      IgnoreSignals();//ignora sinais SIGINT e SIGTSTP
       printf("%s$: ", getcwd(cwd, sizeof(cwd)));
 
       LinhaDeComando(line, historico);

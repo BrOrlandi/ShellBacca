@@ -115,25 +115,32 @@ void external_command(char* line)
 {
     char back_fore = foregroundORbackground(line);//armazena 0 se for foreground, 1 se for background
     pid_t pid = fork();
-    int status = 0;
+    int status;//para wait
 
     if (pid < 0)
         perror ("Fork");
 
     else if (pid > 0)//processo pai
     {
+        setpgid(pid, pid);//seta id de grupo de processo do processo filho para seu própio pid, pra quando receber sinais SIGTTIN e SIGTTOUT, suspender
+        tcsetpgrp(STDIN_FILENO, pid);//seta controle do terminal pra novo grupo de processos, com o processo filho
+
         inserirProcesso(pid, back_fore, line);//insere processo na lista de processos
 
         if (ps.atual->processo.status == FOREGROUND)//se for pra rodar em foreground
-        {
-            SendSignalsToChild();//captura sinais e envia pro filho
             waitpid(pid, &status, WUNTRACED);//espera filho terminar. Somente wait() por algum motivo não funciona quando aperta ctrl+c
-        }
+
+
+        tcsetpgrp(STDIN_FILENO, getpgid(0));//processo pai retoma controle do terminal
 
     }
 
     else//filho
     {
+        DefaultSignals();//sinais SIGTSTP e SIGINT vão apresentar comportamento padrão no processo filho
+        setpgid(0, 0);//seta id de grupo de processo do processo filho para seu própio pid, pra quando receber sinais SIGTTIN e SIGTTOUT, suspender. Já fiz isso no pai, mas fiz aqui de novo porque o filho poderia passar pelo exec antes do pai setar o grupo
+        tcsetpgrp(STDIN_FILENO, pid);//seta controle do terminal pra novo grupo de processos, com o processo filho
+
         int startLine = 0, startExpr, end;//startLine é o começo da procura da expressão seguinte, startExpr é o começo da expressão encontrada, e end é o fim da expressão encontrada
         char* command = NULL;//comando atual
         char* PreviousCommand = NULL;//comando anterior
@@ -247,9 +254,4 @@ void create_pipe(int* fd, pid_t* pid)
         perror("pipe");
 
     *pid = fork();//tenta dar um fork
-}
-
-void chewbacca(void){
-    external_command("aplay ./sound1.wav");
-    return; 
 }

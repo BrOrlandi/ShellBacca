@@ -45,6 +45,5 @@ void read_from_pipe(int* fd);//redireciona o descritor de arquivo stdin para apo
 void write_to_pipe(int* fd);//redireciona o descritor de arquivo stout para apontar pra região de escrita do pipe
 void create_pipe(int* fd, pid_t* pid);//passa os descritores de entrada e saída do pipe, respectivamente, para fd[0] e fd[1] e forka o processo
 char foregroundORbackground(char* line);//Verifica se é pra rodar comando em background ou foreground. Retorna 1 pra background, 0 pra foreground
-void chewbacca(void);
 
 #endif // SHELL_H_INCLUDED

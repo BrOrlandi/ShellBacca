@@ -11,7 +11,7 @@
 
 CC = gcc #			#The complier (example works for gcc)
 CPP_FLAGS = # 			#Preprocessor flags
-C_FLAGS   = -Wall -std=c99 -pedantic -D_POSIX_SOURCE#		#Compiler flags
+C_FLAGS   = -Wall -std=c99 -pedantic -D_POSIX_C_SOURCE=200809L#		#Compiler flags
 LD_FLAGS  = #			#Linker flags
 
 #

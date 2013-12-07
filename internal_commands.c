@@ -93,23 +93,16 @@ void cd(char* line, int argindex)
         while (expression_delimeters(line + argindex, "[^/ ]([^/]*[^/ ])?", &startExpr, &end) == 0)//enquanto encontrar diretórios ou '..' ou '~'
         {
             get_expression3(line + argindex, startExpr, end - startExpr, &command);//pega comando atual
-            //printf("argindex %d, end %d, command %s, size %d\n", argindex, end, command, strlen(command));
             argindex += end;//vai pra próximo ponto de procura de comando
 
-            if (strcmp(command, "..") == 0)//volta um diretório
+            if (strcmp(command, "~") == 0)//ir pro diretório home
             {
-                char* pch;
+                char* HOME = getenv("HOME");
+                strcpy(path, HOME);
 
-                pch = strrchr(path,'/');//procura última barra
-                int pos = pch - path;
+                if (chdir(HOME) != 0)//muda pra home
+                    perror("Nao foi possivel voltar pra home");
 
-                if (pos == 0)//se diretório anterior for raiz. Isso pode parecer desnecessário, mas não funciona fazer simplesmente path[pos+1] quando retorna diretório várias vezes em um comando
-                    path[1] = '\0';//troca por fim de string
-                else
-                    path[pos] = '\0';//troca por fim de string
-
-                if (chdir(path) != 0)//se não conseguir voltar um diretório
-                     perror("Nao foi possivel voltar um diretorio");
                 else
                 {
                     if (flag == 0)
@@ -120,48 +113,24 @@ void cd(char* line, int argindex)
 
                     setenv("PWD", path, 1);//seta PWD
                 }
-
             }
 
-            else//avançar um diretório
+            else
             {
-                if (strcmp(command, "~") == 0)//ir pro diretório home
-                {
-                    char* HOME = getenv("HOME");
-                    strcpy(path, HOME);
+                strcat(path, "/");//concatena barra
+                strcat(path, command);//concatena argumento
 
-                    if (chdir(HOME) != 0)//muda pra home
-                        perror("Nao foi possivel voltar pra home");
-
-                    else
-                    {
-                        if (flag == 0)
-                        {
-                            setenv("OLDPWD", OLDPWD, 1);//seta OLDPWD
-                            flag = 1;
-                        }
-
-                        setenv("PWD", path, 1);//seta PWD
-                    }
-                }
-
+                if (chdir(path) != 0)//se não conseguir avançar um diretório
+                    perror("Nao foi possivel avancar um diretorio");
                 else
                 {
-                    strcat(path, "/");//concatena barra
-                    strcat(path, command);//concatena argumento
-
-                    if (chdir(path) != 0)//se não conseguir avançar um diretório
-                        perror("Nao foi possivel avancar um diretorio");
-                    else
+                    if (flag == 0)
                     {
-                        if (flag == 0)
-                        {
-                            setenv("OLDPWD", OLDPWD, 1);//seta OLDPWD
-                            flag = 1;
-                        }
-
-                        setenv("PWD", path, 1);//seta PWD
+                        setenv("OLDPWD", OLDPWD, 1);//seta OLDPWD
+                        flag = 1;
                     }
+
+                    setenv("PWD", path, 1);//seta PWD
                 }
             }
 
@@ -268,7 +237,7 @@ void bg(char* line)
 
 void fg(char* line)
 {
-    int end, status = 0;//para armazenar fim do número, status para wait
+    int end, status;//para armazenar fim do número, status para wait
 
     if (ps.fim == NULL)//se não tiver processo, retorna
     {
@@ -278,11 +247,13 @@ void fg(char* line)
 
     if (exist_expression(line, "^ *$") == 0)//é o comando fg sem argumentos
     {
+        DefaultSignals();//sinais SIGTSTP e SIGINT vão apresentar comportamento padrão no processo filho
+        tcsetpgrp(STDIN_FILENO, ps.atual->processo.pid);//seta controle do terminal pra novo grupo de processos, com o processo filho
         ps.atual->processo.status = FOREGROUND;//muda estado do processo para foreground
         kill (ps.atual->processo.pid, SIGCONT);//Estava suspenso, continua processo em foreground
         printf("processo atual colocado em foreground\n");
-        SendSignalsToChild();//captura sinais e envia pro processo em foreground
-        waitpid(ps.atual->processo.pid, &status, WUNTRACED);//espera comando em foreground terminar. Somente wait() por algum motivo não funciona quando aperta ctrl+c
+        while (waitpid(ps.atual->processo.pid, &status, WUNTRACED) == -1);//espera comando em foreground terminar. Precisa desse while(poderia ser um if, o wait executaria duas vezes, mas o while é + compacto) porque pode dar o erro EINTR, em que o SIGCHLD é capturado porque o job estava suspenso e voltou em foreground
+        tcsetpgrp(STDIN_FILENO, getpgid(0));//processo pai retoma controle do terminal
     }
 
     else if (expression_delimeters2(line, "^ *[0-9]+", &end) == 0)//é o comando fg com o id do processo como argumento
@@ -300,10 +271,12 @@ void fg(char* line)
 
         else
         {
+            DefaultSignals();//sinais SIGTSTP e SIGINT vão apresentar comportamento padrão no processo filho
+            tcsetpgrp(STDIN_FILENO, ps.atual->processo.pid);//seta controle do terminal pra novo grupo de processos, com o processo filho
             kill (ps.atual->processo.pid, SIGCONT);//Estava suspenso, continua processo em foreground
             printf("job %d colocado em foreground\n", id);
-            SendSignalsToChild();//captura sinais e envia pro processo em foreground
-            waitpid(ps.atual->processo.pid, &status, WUNTRACED);//espera comando em foreground terminar. Somente wait() por algum motivo não funciona quando aperta ctrl+c
+            while (waitpid(ps.atual->processo.pid, &status, WUNTRACED) == -1);//espera comando em foreground terminar. Precisa desse while(poderia ser um if, o wait executaria duas vezes, mas o while é + compacto) porque pode dar o erro EINTR, em que o SIGCHLD é capturado porque o job estava suspenso e voltou em foreground
+            tcsetpgrp(STDIN_FILENO, getpgid(0));//processo pai retoma controle do terminal
         }
     }
 
