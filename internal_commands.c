@@ -1,10 +1,8 @@
 #include "internal_commands.h"
-
-char internal_command(char* line)
+char internal_command(char* line, char executa)
 {
     if (exist_expression(line, "^ *exit *$") == 0)
         return 1;//exit, retorna 1
-
     else
     {
         int end;//primeira posição depois de comando interno, como "cd"
@@ -15,26 +13,27 @@ char internal_command(char* line)
             return 2;//retorna 2
         }
 
-        else if (expression_delimeters2(line, "^ *jobs($| )", &end) == 0)//ver explicação de cd
-        {
-            jobs(line + end);//executa comando jobs
-            return 3;//retorna 3
-        }
-
         else if (expression_delimeters2(line, "^ *bg($| )", &end) == 0)
         {
-            bg(line + end);//executa comando bg
-            return 4;//retorna 4
+            bg(line + end, executa);//executa comando bg
+            return 3;
         }
 
         else if (expression_delimeters2(line, "^ *fg($| )", &end) == 0)
         {
-            fg(line + end);//execute comando fg
+            fg(line + end, executa);//executa comando fg
+            return 4;
+
+        }
+
+        else if (expression_delimeters2(line, "^ *jobs($| )", &end) == 0)
+        {
+            jobs(line + end);//executa comando jobs
             return 5;
         }
     }
 
-    return 0;//se não foi e nenhum comando interno, retorna 0
+    return 0;
 }
 
 void cd(char* line, int argindex)
@@ -70,26 +69,27 @@ void cd(char* line, int argindex)
             fprintf(stderr, "A variavel de ambiente OLDPWD nao foi setada ainda\n");
     }
 
-    else if (exist_expression(line + argindex, "^ */") == 0)//voltar ao diretorio raiz
-    {
-        if (chdir("/") != 0)//se não conseguir ir ao diretorio raiz
-            perror("Nao foi possivel ir ao diretorio raiz");
-        else
-        {
-            setenv("OLDPWD", path, 1);//seta OLDPWD
-            setenv("PWD", "/", 1);//seta PWD
-        }
-
-    }
-
     else//se encontrou argumentos
     {
-
         int startExpr, end;//início e fim da expressão encontrada, respectivamente
         char* command = NULL;//diretório ou '..' ou '~' atual
         char flag = 0;//para ficar alternando entre diretório atual e anterior
         char OLDPWD[MAX_LEN];//para armazenar diretório antigo
         strcpy(OLDPWD, path);//diretório antigo armazena atual inicialmente
+
+        if (expression_delimeters(line + argindex, "^ */", &startExpr, &end) == 0)
+        {
+            argindex += end;//vai pra próximo ponto de procura de comando
+            if (chdir("/") != 0)//se não conseguir ir ao diretorio raiz
+                perror("Nao foi possivel ir ao diretorio raiz");
+            else
+            {
+                setenv("OLDPWD", OLDPWD, 1);//seta OLDPWD
+                setenv("PWD", "/", 1);//seta PWD
+                strcpy(path, "/");
+            }
+        }
+
         while (expression_delimeters(line + argindex, "[^/ ]([^/]*[^/ ])?", &startExpr, &end) == 0)//enquanto encontrar diretórios ou '..' ou '~'
         {
             get_expression3(line + argindex, startExpr, end - startExpr, &command);//pega comando atual
@@ -176,6 +176,7 @@ void jobs(char* line)
         {
             if (n == ps.atual)
                 printaID_PID_STATUS_PATH(n->processo.id, n->processo.pid, "[%d]+   ",n->processo.status, n->processo.path);
+
             else
                 printaID_PID_STATUS_PATH(n->processo.id, n->processo.pid, "[%d]    ",n->processo.status, n->processo.path);
 
@@ -187,8 +188,14 @@ void jobs(char* line)
         fprintf(stderr, "opcao invalida, apenas -l e -p sao aceitos\n");
 }
 
-void bg(char* line)
+void bg(char* line, char executa)
 {
+    if (executa == 0)//não é pra executar
+    {
+        fprintf(stderr, "Sem controle de jobs\n");
+        return;
+    }
+
     int end;//para armazenar fim do número
 
     if (ps.fim == NULL)//se não tiver processo, retorna
@@ -235,15 +242,21 @@ void bg(char* line)
         fprintf(stderr, "digite 'bg' ou 'bg n', onde n é um natural maior que 0\n");
 }
 
-void fg(char* line)
+void fg(char* line, char executa)
 {
-    int end, status;//para armazenar fim do número, status para wait
+    if (executa == 0)//não é pra executar
+    {
+        fprintf(stderr, "Sem controle de jobs\n");
+        return;
+    }
 
     if (ps.fim == NULL)//se não tiver processo, retorna
     {
         fprintf(stderr, "sem jobs para mostrar\n");
         return;
     }
+
+    int end, status;//para armazenar fim do número, status para wait
 
     if (exist_expression(line, "^ *$") == 0)//é o comando fg sem argumentos
     {
@@ -252,7 +265,7 @@ void fg(char* line)
         ps.atual->processo.status = FOREGROUND;//muda estado do processo para foreground
         kill (ps.atual->processo.pid, SIGCONT);//Estava suspenso, continua processo em foreground
         printf("processo atual colocado em foreground\n");
-        while (waitpid(ps.atual->processo.pid, &status, WUNTRACED) == -1);//espera comando em foreground terminar. Precisa desse while(poderia ser um if, o wait executaria duas vezes, mas o while é + compacto) porque pode dar o erro EINTR, em que o SIGCHLD é capturado porque o job estava suspenso e voltou em foreground
+        while (waitpid(ps.atual->processo.pid, &status, WUNTRACED) == -1);//poderia ser um if, mas assim é + compacto. Isso é necessário porque SIGCHLD pode ser capturado porque o job estava suspenso e voltou, gerando o erro EINTR
         tcsetpgrp(STDIN_FILENO, getpgid(0));//processo pai retoma controle do terminal
     }
 
@@ -275,13 +288,14 @@ void fg(char* line)
             tcsetpgrp(STDIN_FILENO, ps.atual->processo.pid);//seta controle do terminal pra novo grupo de processos, com o processo filho
             kill (ps.atual->processo.pid, SIGCONT);//Estava suspenso, continua processo em foreground
             printf("job %d colocado em foreground\n", id);
-            while (waitpid(ps.atual->processo.pid, &status, WUNTRACED) == -1);//espera comando em foreground terminar. Precisa desse while(poderia ser um if, o wait executaria duas vezes, mas o while é + compacto) porque pode dar o erro EINTR, em que o SIGCHLD é capturado porque o job estava suspenso e voltou em foreground
+            while (waitpid(ps.atual->processo.pid, &status, WUNTRACED) == -1);//poderia ser um if, mas assim é + compacto. Isso é necessário porque SIGCHLD pode ser capturado porque o job estava suspenso e voltou, gerando o erro EINTR
             tcsetpgrp(STDIN_FILENO, getpgid(0));//processo pai retoma controle do terminal
         }
     }
 
     else
         fprintf(stderr, "digite 'fg' ou 'fg n', onde n é um natural maior que 0\n");
+
 }
 
 void printaEstado(char status)

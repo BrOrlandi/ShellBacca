@@ -4,6 +4,7 @@
 #include "parse.h"
 #include "signal_handler.h"
 #include "processes_handler.h"
+#include "internal_commands.h"
 
 #ifndef STDIO_H
 #define STDIO_H
@@ -34,13 +35,15 @@
 #define MAX_LEN 1024 //maior tamanho aceito de input
 #endif
 
+void execute_external_command(char* line);//executa comando externo
+void internal_external(char* command, char executa);//executa comando interno ou externo
 int input_redirection(char* line);//faz redirecionamento de entrada, se tiver.
 void output_redirection(char* line);//faz redirecionamento de saída, se tiver
-void external_command(char* line);//executa comando externo, se tiver
+void execute_commands(char* line, char* command);//executa comandos
 void free_Mem(char* prg_tok[]);//libera memória
 void print_prg_tok(char* prg_tok[], int n);//para debug, imprime todos os argumentos
 void execute_program(char* program);//executa programa
-void AnalyseCommand(char* command);//analisa comando, e executa o programa se encontrar, e faz os redirecionamentos de entrada e saída, se tiver
+void AnalyseCommand(char* command, char isPipe);//analisa comando, e executa o programa se encontrar, e faz os redirecionamentos de entrada e saída, se tiver
 void read_from_pipe(int* fd);//redireciona o descritor de arquivo stdin para apontar pra região de leitura do pipe
 void write_to_pipe(int* fd);//redireciona o descritor de arquivo stout para apontar pra região de escrita do pipe
 void create_pipe(int* fd, pid_t* pid);//passa os descritores de entrada e saída do pipe, respectivamente, para fd[0] e fd[1] e forka o processo

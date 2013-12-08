@@ -111,7 +111,8 @@ char foregroundORbackground(char* line)
     else
         return FOREGROUND;//rodar em foreground mesmo
 }
-void external_command(char* line)
+
+void execute_external_command(char* line)
 {
     char back_fore = foregroundORbackground(line);//armazena 0 se for foreground, 1 se for background
     pid_t pid = fork();
@@ -131,6 +132,7 @@ void external_command(char* line)
             waitpid(pid, &status, WUNTRACED);//espera filho terminar. Somente wait() por algum motivo não funciona quando aperta ctrl+c
 
 
+        //printf("pid %d\n", pid);
         tcsetpgrp(STDIN_FILENO, getpgid(0));//processo pai retoma controle do terminal
 
     }
@@ -139,20 +141,41 @@ void external_command(char* line)
     {
         DefaultSignals();//sinais SIGTSTP e SIGINT vão apresentar comportamento padrão no processo filho
         setpgid(0, 0);//seta id de grupo de processo do processo filho para seu própio pid, pra quando receber sinais SIGTTIN e SIGTTOUT, suspender. Já fiz isso no pai, mas fiz aqui de novo porque o filho poderia passar pelo exec antes do pai setar o grupo
+        //tcsetpgrp(STDIN_FILENO, pid);//seta controle do terminal pra novo grupo de processos, com o processo filho
+        AnalyseCommand(line, 0);//executa comando
+    }
+}
+
+void execute_commands(char* line, char* command)
+{
+    char back_fore = foregroundORbackground(command);//armazena 0 se for foreground, 1 se for background
+    pid_t pid = fork();
+    int status;//para wait
+
+    if (pid < 0)
+        perror ("Fork");
+
+    else if (pid > 0)//processo pai
+    {
+        setpgid(pid, pid);//seta id de grupo de processo do processo filho para seu própio pid, pra quando receber sinais SIGTTIN e SIGTTOUT, suspender
         tcsetpgrp(STDIN_FILENO, pid);//seta controle do terminal pra novo grupo de processos, com o processo filho
 
+        inserirProcesso(pid, back_fore, command);//insere processo na lista de processos
+
+        if (ps.atual->processo.status == FOREGROUND)//se for pra rodar em foreground
+            waitpid(pid, &status, WUNTRACED);//espera filho terminar. Somente wait() por algum motivo não funciona quando aperta ctrl+c
+
+        tcsetpgrp(STDIN_FILENO, getpgid(0));//processo pai retoma controle do terminal
+
+    }
+
+    else//filho
+    {
+        DefaultSignals();//sinais SIGTSTP e SIGINT vão apresentar comportamento padrão no processo filho
+        setpgid(0, 0);//seta id de grupo de processo do processo filho para seu própio pid, pra quando receber sinais SIGTTIN e SIGTTOUT, suspender. Já fiz isso no pai, mas fiz aqui de novo porque o filho poderia passar pelo exec antes do pai setar o grupo
+
         int startLine = 0, startExpr, end;//startLine é o começo da procura da expressão seguinte, startExpr é o começo da expressão encontrada, e end é o fim da expressão encontrada
-        char* command = NULL;//comando atual
         char* PreviousCommand = NULL;//comando anterior
-
-        if (expression_delimeters(line + startLine, "[^| ]([^|]*[^| ])?", &startExpr, &end) == 0)//se encontrou um comando
-        {
-            get_expression3(line + startLine, startExpr, end - startExpr, &command);//captura o comando
-            startLine += end;//vai pro próximo ponto de busca
-        }
-
-        else//se não encontrou nenhum comando
-            exit(1);
 
         while (expression_delimeters(line + startLine, "[^| ]([^|]*[^| ])?", &startExpr, &end) == 0)//enquanto encontrar comandos entre pipes
         {
@@ -171,15 +194,26 @@ void external_command(char* line)
             if (pid == 0)//se for processo filho
             {
                 write_to_pipe(fd);//descritor stdout aponta pra região de escrita do pipe
-                AnalyseCommand(PreviousCommand);//executa comando, cuja saída vai pro região de escrita do pipe
+                internal_external(PreviousCommand, 0);//executa comando, cuja saída vai pro região de escrita do pipe
             }
 
             else
                read_from_pipe(fd);//descritor stdin aponta pra região de leitura do pipe
         }
 
-        AnalyseCommand(command);//analisa último comando
+        internal_external(command, 0);//executa último comando
+    }
+}
 
+void internal_external(char* command, char executa)
+{
+    char int_command = internal_command(command, executa);//para tentar executar comando interno
+    if (int_command == 0)//não foi executado comando interno
+        AnalyseCommand(command, 1);//executa comando externo, cuja saída vai pro região de escrita do pipe
+    else
+    {
+        free(command);//libera comando anterior
+        exit(1);//precisa sair do filho, se foi executado comando interno não retorna normalmente
     }
 }
 
@@ -205,7 +239,7 @@ void print_prg_tok(char* prg_tok[], int n)
     }
 }
 
-void AnalyseCommand(char* command)
+void AnalyseCommand(char* command, char isPipe)
 {
     char* program = NULL;//para capturar programa externo
     int start, end;//começo e fim do programa externo
@@ -230,7 +264,8 @@ void AnalyseCommand(char* command)
         exit(1);
 
     output_redirection(command);//faz redirecionamento de saída, se tiver.
-    free(command);//libera comando
+    if (isPipe == 1)
+        free(command);//libera comando
     execute_program(program);//executa programa
 }
 

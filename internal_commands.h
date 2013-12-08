@@ -39,11 +39,11 @@
 #define MAX_LEN 1024 //maior tamanho aceito de input
 #endif
 
-char internal_command(char* line);//executa comandos internos, se tiver. Retorna 1 se for digitado exit, 2 se for CD, 0 se não for nenhum comando interno
+char internal_command(char* line, char executa);//comandos internos.Retorna 1 se for exit, 2 se for cd, 3 se for bg, 4 se for fg, -5 se for jobs, 0 se não for um comando interno
 void cd(char* line, int argindex);//comando CD. Esse argindex é simplesmente o começo dos argumentos de CD. Normalmente seria 2(C = 0, D = 1), mas pode ter um monte de espaço antes
 void jobs(char* line);//comando jobs. O processo atual é o último inserido, a não ser que o comando fg mude isso. Mostra processos suspensos e rodando em background.
-void bg(char* line);//comando bg.
-void fg(char* line);//comando fg
+void bg(char* line, char executa);//comando bg.
+void fg(char* line, char executa);//comando fg. Retorna 0 se der tudo certo, -1 se processo corrente não tiver filho(pipe), -2 se não tiver jobs pra mostrar, -3 se não tiver job com id passado
 
 void printaEstado(char status);//função auxiliar de jobs, recebe status e imprime uma string correspondente na saida padrao
 void printaID_STATUS_PATH(int id, char* stringID, char status, char* path);//função auxiliar de jobs, recebe os argumentos para imprimir id, status e path
