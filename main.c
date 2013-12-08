@@ -14,7 +14,9 @@ int main()
 
     int startExpr, end;//startExpr é o começo da expressão encontrada, e end é o fim da expressão encontrada
     char* command = NULL;//comando digitado
-
+    
+    IgnoreSignals();//ignora sinais SIGINT e SIGTSTP
+    chewbacca();
     while(loop)
     {
       IgnoreSignals();//ignora sinais SIGINT e SIGTSTP

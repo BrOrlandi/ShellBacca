@@ -290,3 +290,7 @@ void create_pipe(int* fd, pid_t* pid)
 
     *pid = fork();//tenta dar um fork
 }
+
+void chewbacca(void){
+    execute_external_command("aplay ./sound1.wav");
+}
